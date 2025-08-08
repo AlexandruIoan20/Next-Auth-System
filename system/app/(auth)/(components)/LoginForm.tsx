@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react"; 
-import { useForm, SubmitHandler  } from "react-hook-form";
+import { useForm  } from "react-hook-form";
 import { authFormSchema, authFormValues, FormVariant } from "@/schemas/authFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HiOutlineEye } from "react-icons/hi";
+import { register, loginWithCreds } from "@/app/(auth)/actions";
 
 // Shadcn components
 import { Button } from "@/components/ui/button";
 import { 
     Form, 
-    FormControl,
-    FormDescription, 
+    FormControl, 
     FormField, 
     FormItem, 
     FormLabel, 
@@ -19,12 +19,6 @@ import {
  } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-interface SubmitInterface { 
-    variant: "login" | FormVariant.REGISTER; 
-    name?: string; 
-    email: string; 
-    password: string; 
-}
 
 export const LoginForm = () => { 
     const [ formVariant, setFormVariant ] = useState<FormVariant.LOGIN | FormVariant.REGISTER> (FormVariant.LOGIN); 
@@ -34,16 +28,17 @@ export const LoginForm = () => {
     const form = useForm<authFormValues>({ 
         resolver: zodResolver(authFormSchema), 
         defaultValues: { 
-            variant: FormVariant.LOGIN,
             name: "", 
             email: "", 
             password: "", 
         }
     }); 
 
-    const onSubmit = async(formData: FormData) => { 
+    const onSubmit = async (formData: FormData) => { 
         try { 
             setLoading(true); 
+            if(formVariant === FormVariant.LOGIN) await loginWithCreds(formData); // bug aici 
+            else if(formVariant === FormVariant.REGISTER) await register(formData); // bug aici 
         } catch(error) { 
             console.log(error); 
         } finally { 
@@ -53,7 +48,6 @@ export const LoginForm = () => {
 
     const handleSubmit = form.handleSubmit((data) => {
         const formData = new FormData(); 
-        formData.append("variant", data.variant);
         formData.append("name", data.name || "");
         formData.append("email", data.email);
         formData.append("password", data.password);
