@@ -5,7 +5,8 @@ import { useForm  } from "react-hook-form";
 import { authFormSchema, authFormValues, FormVariant } from "@/schemas/authFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HiOutlineEye } from "react-icons/hi";
-import { FormState } from "@/lib/utils";
+
+import { useRouter } from "next/navigation";
 
 // Shadcn components
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,10 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { register, loginWithCreds } from "../actions";
+import { set } from "zod";
 
 export const LoginForm = () => { 
+    const router = useRouter();
     const [ formVariant, setFormVariant ] = useState<FormVariant.LOGIN | FormVariant.REGISTER> (FormVariant.LOGIN); 
     const [ passwordInputType, setPasswordInputType ] = useState<"password" | "text"> ("password");
 
@@ -38,8 +41,17 @@ export const LoginForm = () => {
     const submitForm = async (formData: FormData) => { 
         try { 
             setLoading(true); 
-            if(formVariant === FormVariant.LOGIN) await loginWithCreds(formData); 
-            else if(formVariant === FormVariant.REGISTER) await register(formData); 
+            if(formVariant === FormVariant.LOGIN) { 
+                const response = await loginWithCreds(formData); 
+                if(response.message == "Login successful.") router.push("/")
+            }
+            else if(formVariant === FormVariant.REGISTER) { 
+                const response = await register(formData);
+                if(response.message == "User created successfully.")  { 
+                    form.reset(); 
+                    setFormVariant(FormVariant.LOGIN);
+                }
+            }
 
             console.log("Form submitted successfully.");
         } catch(error) { 

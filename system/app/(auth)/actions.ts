@@ -48,7 +48,9 @@ export async function loginWithCreds (formData: FormData): Promise<FormState> {
 
     try { 
         await signIn("credentials", rawFormData); 
-        revalidatePath("/");;
+        revalidatePath("/");
+
+        console.log("User logged in successfully.");
     } catch (error) { 
         console.log(error); 
         if(error instanceof PrismaClientKnownRequestError) return { message: error.message };
