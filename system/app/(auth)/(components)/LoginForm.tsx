@@ -5,7 +5,7 @@ import { useForm  } from "react-hook-form";
 import { authFormSchema, authFormValues, FormVariant } from "@/schemas/authFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HiOutlineEye } from "react-icons/hi";
-import { register, loginWithCreds } from "@/app/(auth)/actions";
+import { FormState } from "@/lib/utils";
 
 // Shadcn components
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
  } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { register, loginWithCreds } from "../actions";
 
 export const LoginForm = () => { 
     const [ formVariant, setFormVariant ] = useState<FormVariant.LOGIN | FormVariant.REGISTER> (FormVariant.LOGIN); 
@@ -34,11 +35,13 @@ export const LoginForm = () => {
         }
     }); 
 
-    const onSubmit = async (formData: FormData) => { 
+    const submitForm = async (formData: FormData) => { 
         try { 
             setLoading(true); 
-            if(formVariant === FormVariant.LOGIN) await loginWithCreds(formData); // bug aici 
-            else if(formVariant === FormVariant.REGISTER) await register(formData); // bug aici 
+            if(formVariant === FormVariant.LOGIN) await loginWithCreds(formData); 
+            else if(formVariant === FormVariant.REGISTER) await register(formData); 
+
+            console.log("Form submitted successfully.");
         } catch(error) { 
             console.log(error); 
         } finally { 
@@ -52,7 +55,7 @@ export const LoginForm = () => {
         formData.append("email", data.email);
         formData.append("password", data.password);
 
-        onSubmit(formData);
+        submitForm(formData);
     })
 
     const handleVariant = () => { 
@@ -66,12 +69,12 @@ export const LoginForm = () => {
     return ( 
         <div>   
             <Form {...form}>
-                <form onSubmit = { handleSubmit }>
+                <form onSubmit={handleSubmit}>
                     { formVariant === FormVariant.REGISTER &&
                         <FormField
-                            control = { form.control } 
-                            name = "name"
-                            render = { ({ field }) => (
+                            control={form.control} 
+                            name="name"
+                            render={ ({ field }) => (
                                 <FormItem>
                                     <FormLabel> Name </FormLabel>
                                     <FormControl>
@@ -128,6 +131,7 @@ export const LoginForm = () => {
                                         </button>
                                     </div>
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />  
@@ -141,13 +145,13 @@ export const LoginForm = () => {
                 ( 
                     <div className = "flex"> 
                         <p> You don't have an account? </p>
-                        <Button onClick = { handleVariant }> Register </Button>
+                        <Button type = "button" onClick = { handleVariant }> Register </Button>
                     </div>
                 ) : 
                 ( 
                     <div className = "flex">
                         <p> Do you already have an account? </p>
-                        <Button onClick = { handleVariant }> Sign in </Button>
+                        <Button type = "button" onClick = { handleVariant }> Sign in </Button>
                     </div>
                 )
             }    

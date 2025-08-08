@@ -80,7 +80,7 @@ export async function register(formData: FormData): Promise<FormState> {
             data: { 
                 name: rawFormData.name as string, 
                 email: rawFormData.email as string,
-                password: saltAndHashPassword(rawFormData.password as string),
+                hashedPassword: saltAndHashPassword(rawFormData.password as string),
             }
         }); 
 
