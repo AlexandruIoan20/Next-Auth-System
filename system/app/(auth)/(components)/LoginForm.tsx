@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { HiOutlineEye } from "react-icons/hi";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useAlert } from "@/hooks/useAlert";
 
 import { AlertText } from "@/components/AlertText";
 
@@ -22,7 +22,6 @@ import {
     FormMessage, 
  } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { register, loginWithCreds } from "../actions";
 
@@ -31,11 +30,7 @@ export const LoginForm = () => {
     const [ formVariant, setFormVariant ] = useState<FormVariant.LOGIN | FormVariant.REGISTER> (FormVariant.LOGIN); 
     const [ passwordInputType, setPasswordInputType ] = useState<"password" | "text"> ("password");
 
-    // State for handling errors
-    const [ alertTitle, setAlertTitle ] = useState<string> (""); 
-    const [ alertDescription, setAlertDescription] = useState<string> (""); 
-    const [ isSubmited, setIsSubmited ] = useState<boolean> (false); 
-    const [ errorState, setErrorState ] = useState<boolean> (false); 
+    const { alertTitle, alertDescription, isSubmited, errorState, setIsSubmited, setAlert } = useAlert();
 
     const [ loading, setLoading ] = useState<boolean> (false); 
     const form = useForm<authFormValues>({ 
@@ -47,19 +42,6 @@ export const LoginForm = () => {
         }
     }); 
     
-    useEffect( () => { 
-        const handleSubmitChange = () => { 
-            setTimeout( () => { 
-                setIsSubmited(false);
-                setErrorState(false);
-                setAlertTitle("");
-                setAlertDescription("");
-            }, 5000); 
-        }
-
-        handleSubmitChange();
-    }, [ isSubmited, errorState, alertTitle, alertDescription ]);
-
     const submitForm = async (formData: FormData) => { 
         try { 
             setLoading(true); 
@@ -68,12 +50,9 @@ export const LoginForm = () => {
                 console.log({ response })
                 if(response.success) { 
                     router.push("/"); 
-                    setAlertTitle("Success");
-                    setAlertDescription(response.message);
+                    setAlert("Success", response.message, false);
                 } else { 
-                    setAlertTitle("Error");
-                    setAlertDescription(response.message);
-                    setErrorState(true); 
+                    setAlert("Error", response.message, true);
                 }
             }
             else if(formVariant === FormVariant.REGISTER) { 
@@ -81,12 +60,9 @@ export const LoginForm = () => {
                 if(response.success)  { 
                     form.reset(); 
                     setFormVariant(FormVariant.LOGIN);
-                    setAlertTitle("Success");
-                    setAlertDescription(response.message);
+                    setAlert("Success", response.message, false);
                 } else { 
-                    setAlertTitle("Error");
-                    setAlertDescription(response.message);
-                    setErrorState(true); 
+                    setAlert("Error", response.message, true);
                 }
             }
 
