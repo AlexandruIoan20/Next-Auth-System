@@ -8,7 +8,9 @@ export enum FormVariant {
 export const authFormSchema = z.object({ 
     name: z
         .string()
-        .optional(),
+        .min(3, "Name must be at least 3 characters long.")
+        .optional()
+        .or(z.literal("")), 
     email: z
         .string() 
         .email("Please enter a valid email address." ),

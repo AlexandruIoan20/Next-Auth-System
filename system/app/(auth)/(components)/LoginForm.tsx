@@ -7,6 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { HiOutlineEye } from "react-icons/hi";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { AlertText } from "@/components/AlertText";
 
 // Shadcn components
 import { Button } from "@/components/ui/button";
@@ -19,14 +22,20 @@ import {
     FormMessage, 
  } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { register, loginWithCreds } from "../actions";
-import { set } from "zod";
 
 export const LoginForm = () => { 
     const router = useRouter();
     const [ formVariant, setFormVariant ] = useState<FormVariant.LOGIN | FormVariant.REGISTER> (FormVariant.LOGIN); 
     const [ passwordInputType, setPasswordInputType ] = useState<"password" | "text"> ("password");
+
+    // State for handling errors
+    const [ alertTitle, setAlertTitle ] = useState<string> (""); 
+    const [ alertDescription, setAlertDescription] = useState<string> (""); 
+    const [ isSubmited, setIsSubmited ] = useState<boolean> (false); 
+    const [ errorState, setErrorState ] = useState<boolean> (false); 
 
     const [ loading, setLoading ] = useState<boolean> (false); 
     const form = useForm<authFormValues>({ 
@@ -37,19 +46,47 @@ export const LoginForm = () => {
             password: "", 
         }
     }); 
+    
+    useEffect( () => { 
+        const handleSubmitChange = () => { 
+            setTimeout( () => { 
+                setIsSubmited(false);
+                setErrorState(false);
+                setAlertTitle("");
+                setAlertDescription("");
+            }, 5000); 
+        }
+
+        handleSubmitChange();
+    }, [ isSubmited, errorState, alertTitle, alertDescription ]);
 
     const submitForm = async (formData: FormData) => { 
         try { 
             setLoading(true); 
             if(formVariant === FormVariant.LOGIN) { 
                 const response = await loginWithCreds(formData); 
-                if(response.message == "Login successful.") router.push("/")
+                console.log({ response })
+                if(response.success) { 
+                    router.push("/"); 
+                    setAlertTitle("Success");
+                    setAlertDescription(response.message);
+                } else { 
+                    setAlertTitle("Error");
+                    setAlertDescription(response.message);
+                    setErrorState(true); 
+                }
             }
             else if(formVariant === FormVariant.REGISTER) { 
                 const response = await register(formData);
-                if(response.message == "User created successfully.")  { 
+                if(response.success)  { 
                     form.reset(); 
                     setFormVariant(FormVariant.LOGIN);
+                    setAlertTitle("Success");
+                    setAlertDescription(response.message);
+                } else { 
+                    setAlertTitle("Error");
+                    setAlertDescription(response.message);
+                    setErrorState(true); 
                 }
             }
 
@@ -58,6 +95,7 @@ export const LoginForm = () => {
             console.log(error); 
         } finally { 
             setLoading(false); 
+            setIsSubmited(true); 
         }
     }
 
@@ -66,6 +104,8 @@ export const LoginForm = () => {
         formData.append("name", data.name || "");
         formData.append("email", data.email);
         formData.append("password", data.password);
+
+        console.log("Form data: ", { formData });
 
         submitForm(formData);
     })
@@ -81,7 +121,7 @@ export const LoginForm = () => {
     return ( 
         <div>   
             <Form {...form}>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={ handleSubmit }>
                     { formVariant === FormVariant.REGISTER &&
                         <FormField
                             control={form.control} 
@@ -167,6 +207,14 @@ export const LoginForm = () => {
                     </div>
                 )
             }    
+
+            { isSubmited && 
+                <AlertText 
+                    errorState = { errorState }
+                    alertTitle = { alertTitle }
+                    alertDescription = { alertDescription }
+                />
+            }
         </div>
     )
 }

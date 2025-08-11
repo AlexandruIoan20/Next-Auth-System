@@ -7,5 +7,6 @@ export function cn(...inputs: ClassValue[]) {
 
 export type FormState = { 
   message: string; 
+  success: boolean; 
   issues?: string[]; 
 }
